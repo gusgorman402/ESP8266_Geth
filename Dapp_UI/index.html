@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./web3.js/dist/web3.js"></script>
+
+  </head>
+
+  <body>
+    <header>
+      <h1>Blockchain Dapp Temperature Sensor</h1>
+      <h2>Current block number at last page refresh:</h2>
+      <h2><pre id="testarea"></pre></h2>
+    </header>
+    <p>Sensor and LED data from EVM enabled ESP8266</p>
+
+    <script>
+        var block;
+        if (typeof web3 !== 'undefined') {
+          web3 = new Web3(web3.currentProvider);
+        } else {
+          web3 = new Web3(new Web3.providers.HttpProviders("http://localhost:8545"));
+        }
+        
+       web3.eth.getBlockNumber( function(error,result) {
+              document.getElementById('testarea').innerText = result;
+       });
+        
+        var sensorContract = web3.eth.contract( [{"constant":false,"inputs":[{"name":"_temp","type":"int256"}],"name":"setTempDeviceOnly","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"turnLightOn","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"isTempCurrent","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"updateTemp","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getTemp","outputs":[{"name":"","type":"int256"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"isLightTurnedOn","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"turnLightOffAdminOnly","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"},{"name":"amount","type":"uint256"}],"name":"transferOutAdminOnly","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}] );
+
+        var sensor = sensorContract.at('0x513c67ef8dd393A423900aaFCc78A6878e465aE5');
+
+        sensor.getTemp( function(error,result) {
+          document.getElementById('temperature').innerText = result[0];
+          document.getElementById('temperatureBlockNum').innerText = result[1];
+        });
+
+        sensor.isLightTurnedOn( function(err, res) {
+          if( res === true ){
+            document.getElementById('lightStatus').innerText = "Light is ON";
+          } else {
+            document.getElementById('lightStatus').innerText = "Light is OFF";
+          }
+        });
+
+        function flipLightOn() {
+          var etherAmount = document.getElementById('lightAmount').value;
+          var sendAmount = web3.toWei( etherAmount, 'ether');
+          sensor.turnLightOn( {value: sendAmount}, function(err, res){});
+        }
+
+        function flipLightOff() {
+          sensor.turnLightOffAdminOnly( function(err, res){});
+        }
+
+        function checkDevice(){
+          var etherAmountDevice = document.getElementById('deviceAmount').value;
+          var sendAmountDevice = web3.toWei( etherAmountDevice, 'ether' );
+          sensor.updateTemp( {value: sendAmountDevice}, function(err, res){} );
+        }
+
+
+        console.log("current account: ");
+        //console.log(block);
+        console.log("hello");
+    </script>
+
+
+
+    <h2>Temperature:</h2>
+    <pre id='temperature'></pre>
+    
+    <h2>Last Temperature Update BlockNumber:</h2>
+    <pre id='temperatureBlockNum'></pre>
+
+    <h2>Light Status:</h2><pre id='lightStatus'></pre>
+
+    <h2>Turn Light On</h2>
+    <p>Must send a minimum 1 Ether for this button to work</p>
+    <p>Enter Amount to send in ether:</p>
+    <input id='lightAmount' placeholer='value'><button id='lightOnBtn' onclick='flipLightOn()'>Turn Light ON</button>
+
+    <h2>Check Device Status</h2>
+    <p>Must send minimum 0.01 Ether</p>
+    <p>If temperature does not update after 1min, then device is offline</p>
+    <input id='deviceAmount' placeholer='value'><button id='deviceBtn' onclick='checkDevice()'>Check Device Status</button>
+
+    <h2>Turn Light Off</h2>
+    <p>Button will only work for contract owner</p>
+    <button id='lightOffBtn' onclick='flipLightOff()'>Turn Light OFF</button>
+
+
+  </body>
+
+</html>
