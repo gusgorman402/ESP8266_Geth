@@ -21,7 +21,7 @@
           web3 = new Web3(new Web3.providers.HttpProviders("http://localhost:8545"));
         }
         
-        web3.eth.getBlockNumber( function(error,result) {
+        web3.eth.blockNumber( function(error,result) {
           document.getElementById('testarea').innerText = result;
         });
        
