@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Page</title>
+
+    <script src="web3.min.js"></script>
+
+  </head>
+
+  <body>
+    <header>
+      <h1>Test Sign Transaction</h1>
+      <h2>Current block number:</h2>
+      <h2><pre id="testarea"></pre></h2>
+    </header>
+ 
+    <script>
+        if (typeof web3 !== 'undefined') {
+          web3 = new Web3(web3.currentProvider);
+        } else {
+          web3 = new Web3(new Web3.providers.HttpProviders("http://localhost:8545"));
+        }
+       
+       
+        document.getElementById('testarea').innerText = web3.eth.blockNumber();
+              
+        document.getElementById('sendaddress').innerText = web3.eth.accounts[0];
+
+        document.getElementById('receiveaddress').innerText = "0x7c9cF83Ec0c016B4302AE3E76969ea4fafBF04F1";
+
+        function signEther(){
+            var etherAmount = document.getElementById('transferAmount').value;
+            var weiEtherAmount = web3.toWei( etherAmount, 'ether');
+            var transactionInfo;
+          
+            web3.eth.signTransaction({
+                from: web3.eth.accounts[0],
+                gasPrice: "41000000000",
+                gas: "21000",
+                to: "0x7c9cF83Ec0c016B4302AE3E76969ea4fafBF04F1",
+                value: weiEtherAmount,
+                data: "0x00",
+                nonce: "0x00" },
+                function(error,result){ transactionInfo = result});
+            
+            document.getElementById('signedTrans').innerText = transactionInfo.raw
+        }
+    </script>
+
+    <h2>Sender Address:</h2>
+    <pre id='sendaddress'></pre>
+
+    <h2>Receiver Address:</h2>
+    <pre id='receiveaddress'></pre>
+    
+
+    <h2>Send Ether</h2>
+    <p>Enter Amount to send in ether:</p>
+    <input id='transferAmount' placeholer='value'><button id='testSignBtn' onclick='signEther()'>Sign Transaction</button>
+
+    <h2>Signed Transaction:</h2>
+    <pre id='signedTrans'>Nothing yet</pre>
+
+  </body>
+
+</html>
